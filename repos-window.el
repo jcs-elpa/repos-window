@@ -40,7 +40,13 @@
 
 (defcustom repos-window-commands
   '()
-  "List of commands to reposition."
+  "List of commands to reposition window."
+  :type 'list
+  :group 'repos-window)
+
+(defcustom repos-window-switch-commands
+  '()
+  "List of commands to reposition window but only when buffer changes.."
   :type 'list
   :group 'repos-window)
 
@@ -54,15 +60,28 @@
   "Middle window."
   (repos-window-top-bottom 'middle))
 
+;;;###autoload
+(defun repos-window-middle-around-switch (&optional arg0 &rest args)
+  "Middle window after switch buffer."
+  ;; Exection runs after navigate buffer that is different than the caller.
+  (let ((prev-buf (current-buffer)))
+    (apply arg0 args)
+    (unless (equal prev-buf (current-buffer))  ; Different buffer, recenter it.
+      (repos-window-top-bottom 'middle))))
+
 (defun repos-window--enable ()
   "Enable function `repos-window-mode'."
   (dolist (command repos-window-commands)
-    (advice-add command :after #'repos-window-middle-after)))
+    (advice-add command :after #'repos-window-middle-after))
+  (dolist (command repos-window-switch-commands)
+    (advice-add command :around #'repos-window-middle-around-switch)))
 
 (defun repos-window--disable ()
   "Disable function `repos-window-mode'."
   (dolist (command repos-window-commands)
-    (advice-remove command #'repos-window-middle-after)))
+    (advice-remove command #'repos-window-middle-after))
+  (dolist (command repos-window-switch-commands)
+    (advice-remove command #'repos-window-middle-around-switch)))
 
 ;;;###autoload
 (define-minor-mode repos-window-mode
