@@ -1,3 +1,5 @@
+;; -*- mode: eask; lexical-binding: t -*-
+
 (package "repos-window"
          "0.1.0"
          "Reposition window if when needed")
